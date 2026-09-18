@@ -37,6 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # پکیج‌های خارجی (DRF)
+    'rest_framework',
+
+    # Appهای پروژه ما
+    'users',
+    'videos',
+    'subscriptions',
 ]
 
 MIDDLEWARE = [
@@ -125,3 +133,4 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+AUTH_USER_MODEL = 'users.CustomUser'
