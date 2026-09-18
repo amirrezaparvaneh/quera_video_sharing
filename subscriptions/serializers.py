@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Subscription, Payment
+from .models import Subscription, Payment, PaymentHistory
 from datetime import timedelta
 from django.utils import timezone
 
@@ -20,7 +20,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         amount = validated_data.get('amount')
 
-        # ۱. ابتدا یک اشتراک ۳۰ روزه جدید برای کاربر می‌سازیم (به صورت پیش‌فرض غیرفعال تا پرداخت انجام شود)
         end_date = timezone.now() + timedelta(days=30)
         subscription = Subscription.objects.create(
             user=user,
@@ -28,16 +27,25 @@ class PaymentSerializer(serializers.ModelSerializer):
             is_active=False
         )
 
-        # ۲. رکورد پرداخت را به این اشتراک متصل می‌کنیم
         payment = Payment.objects.create(
             user=user,
             subscription=subscription,
             amount=amount,
-            status='success'  # در محیط تمرینی پرداخت را مستقیماً موفق در نظر می‌گیریم
+            status='success'  # Simulate a successful payment without contacting a payment gateway.
         )
 
-        # ۳. حالا که پرداخت موفق شد، اشتراک را فعال می‌کنیم
         subscription.is_active = True
         subscription.save()
 
         return payment
+
+
+class PaymentHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentHistory
+        fields = ['id', 'amount', 'transaction_date', 'status']
+
+
+class MessageResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+    end_date = serializers.DateTimeField(required=False, allow_null=True)

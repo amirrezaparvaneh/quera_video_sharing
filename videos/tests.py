@@ -12,7 +12,6 @@ User = get_user_model()
 
 class VideoPermissionTests(APITestCase):
     def setUp(self):
-        # ۱. ساخت دو نوع کاربر با ایمیل‌های متفاوت و یکتا: عادی و پرمیوم
         self.normal_user = User.objects.create_user(
             username='normal_user',
             email='normal@example.com',
@@ -24,20 +23,16 @@ class VideoPermissionTests(APITestCase):
             password='password123'
         )
 
-        # محاسبه تاریخ ۳۰ روز آینده برای انقضای اشتراک
         future_date = timezone.now() + timedelta(days=30)
 
-        # اختصاص اشتراک فعال به کاربر پرمیوم به همراه تاریخ پایان
         Subscription.objects.create(
             user=self.premium_user,
             is_active=True,
             end_date=future_date
         )
 
-        # ۲. ساخت یک فایل ویدیویی شبیه‌سازی‌شده (Fake File) برای تست
         fake_video = SimpleUploadedFile("test_video.mp4", b"file_content", content_type="video/mp4")
 
-        # ۳. ساخت دو نوع ویدیو: رایگان و پرمیوم
         self.free_video = Video.objects.create(
             title="ویدیوی رایگان",
             description="همه می‌توانند ببینند",
@@ -53,19 +48,19 @@ class VideoPermissionTests(APITestCase):
         )
 
     def test_access_free_video(self):
-        """ کاربر عادی باید بتواند ویدیوی رایگان را ببیند """
+        """ Users without a subscription can retrieve free videos. """
         self.client.force_authenticate(user=self.normal_user)
         response = self.client.get(f'/api/videos/videos/{self.free_video.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_access_premium_video_without_subscription(self):
-        """ کاربر عادی نباید بتواند ویدیوی پرمیوم را ببیند (خطای 403) """
+        """ Users without a subscription receive HTTP 403 for premium videos. """
         self.client.force_authenticate(user=self.normal_user)
         response = self.client.get(f'/api/videos/videos/{self.premium_video.id}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_access_premium_video_with_subscription(self):
-        """ کاربر دارای اشتراک باید بتواند ویدیوی پرمیوم را ببیند """
+        """ Users with an active subscription can retrieve premium videos. """
         self.client.force_authenticate(user=self.premium_user)
         response = self.client.get(f'/api/videos/videos/{self.premium_video.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

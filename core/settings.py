@@ -38,11 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # پکیج‌های خارجی (DRF)
     'rest_framework',
     'rest_framework.authtoken',
 
-    # Appهای پروژه ما
     'users',
     'videos',
     'subscriptions',
@@ -143,7 +141,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    # اضافه کردن اسکیما جنراتور پیش‌فرض برای Swagger
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 

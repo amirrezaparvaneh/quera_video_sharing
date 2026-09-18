@@ -1,13 +1,16 @@
 from rest_framework import serializers
 from .models import Video, Comment, Rating
+from .models import WatchHistory
+
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'video_file', 'is_premium', 'views_count', 'created_at']
+        read_only_fields = ['views_count']
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True) # نام کاربر به صورت خواندنی نمایش داده شود
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Comment
@@ -15,7 +18,6 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at']
 
     def create(self, validated_data):
-        # کاربر ارسال‌کننده کامنت به صورت خودکار از روی درخواست تنظیم می‌شود
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
@@ -30,3 +32,11 @@ class RatingSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class WatchHistorySerializer(serializers.ModelSerializer):
+    video_title = serializers.CharField(source='video.title', read_only=True)
+
+    class Meta:
+        model = WatchHistory
+        fields = ['id', 'video', 'video_title', 'watched_at']
