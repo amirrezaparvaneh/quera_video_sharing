@@ -19,5 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/users/', include('users.urls')), # اضافه شدن این خط
+    path('api/users/', include('users.urls')),
+    path('api/videos/', include('videos.urls')),
+    path('api-auth/', include('rest_framework.urls')), # این خط دکمه لاگین را اضافه می‌کند
 ]
