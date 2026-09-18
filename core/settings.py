@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'users',
     'videos',
     'subscriptions',
+
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -141,4 +143,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    # اضافه کردن اسکیما جنراتور پیش‌فرض برای Swagger
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Quera Video Sharing API',
+    'DESCRIPTION': 'Django Video Sharing Platform - Official API Documentation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
