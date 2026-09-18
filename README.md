@@ -1,12 +1,16 @@
+<br>
+
 <p align="center">
   <a href="#english">
     <img src="https://img.shields.io/badge/🇬🇧_English-007EC6?style=for-the-badge&logoColor=white" alt="English">
   </a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="#farsi">
-    <img src="https://img.shields.io/badge/🇮🇷Farsi-D9534F?style=for-the-badge&logoColor=white" alt="Farsi">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="#persian">
+    <img src="https://img.shields.io/badge/🇮🇷_Farsi-D9534F?style=for-the-badge&logoColor=white" alt="Farsi">
   </a>
 </p>
+
+<br>
 
 ---
 
