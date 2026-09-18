@@ -1,20 +1,8 @@
-<br>
-
-<p align="center">
-  <a href="#english">
-    <img src="https://img.shields.io/badge/🇬🇧_English-007EC6?style=for-the-badge&logoColor=white" alt="English">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="#persian">
-    <img src="https://img.shields.io/badge/🇮🇷_Farsi-D9534F?style=for-the-badge&logoColor=white" alt="Farsi">
-  </a>
-</p>
-
-<br>
-
----
 
 # Quera Video Sharing 🎬
+
+[![Persian](https://img.shields.io/badge/Language-Persian-green.svg)](#persian)
+[![English](https://img.shields.io/badge/Language-English-blue.svg)](#english)
 
 ## English
 
