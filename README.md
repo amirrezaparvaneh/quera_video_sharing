@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="#english">🇬🇧 English</a> &nbsp;|&nbsp; <a href="#persian">🇮🇷 فارسی</a>
+</p>
+
 # Quera Video Sharing 🎬
 
 ## English
@@ -187,6 +191,8 @@ Known issues retained unchanged in this comment/documentation cleanup:
 - **Media and deployment:** `MEDIA_ROOT`, `MEDIA_URL`, and media-serving routes are not configured. Uploaded files use the `videos/` upload prefix with default storage settings; playback is not configured. Settings include `DEBUG=True`, a development secret, and an empty `ALLOWED_HOSTS`. Deployment, protected media delivery, and production storage require separate configuration.
 
 ---
+
+<a name="persian"></a>
 
 ## فارسی
 
