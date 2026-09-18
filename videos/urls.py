@@ -1,10 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import VideoViewSet
+from .views import VideoViewSet, CommentViewSet, RatingViewSet
 
-# Router به صورت خودکار تمام URLهای لازم برای یک ViewSet را می‌سازد
 router = DefaultRouter()
-router.register(r'', VideoViewSet, basename='video')
+router.register(r'videos', VideoViewSet, basename='video')
+router.register(r'comments', CommentViewSet, basename='comment')
+router.register(r'ratings', RatingViewSet, basename='rating')
 
 urlpatterns = [
     path('', include(router.urls)),
