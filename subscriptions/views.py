@@ -1,12 +1,12 @@
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status, generics, mixins
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.utils import timezone
-from datetime import timedelta
+from django.db import transaction
 from drf_spectacular.utils import extend_schema, OpenApiTypes
 from .models import Subscription, Payment, PaymentHistory
+from .services import activate_subscription, subscription_price
 from .serializers import (
     SubscriptionSerializer,
     PaymentSerializer,
@@ -19,17 +19,21 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Subscription.objects.none()
         return Subscription.objects.filter(user=self.request.user)
 
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(mixins.CreateModelMixin,
+                     mixins.ListModelMixin,
+                     mixins.RetrieveModelMixin,
+                     viewsets.GenericViewSet):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Payment.objects.none()
         return Payment.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save()
 
 
 class PaymentHistoryListView(generics.ListAPIView):
@@ -40,44 +44,35 @@ class PaymentHistoryListView(generics.ListAPIView):
         return PaymentHistory.objects.filter(user=self.request.user)
 
 
-@extend_schema(responses={200: MessageResponseSerializer})
+@extend_schema(request=None, responses={200: MessageResponseSerializer})
 class CancelSubscriptionView(APIView):
     serializer_class = MessageResponseSerializer
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        try:
-            subscription = Subscription.objects.get(user=request.user)
-            if not subscription.is_active:
-                return Response({"detail": "Your subscription is already inactive."},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            subscription.is_active = False
-            subscription.save()
-            return Response({"detail": "Subscription cancelled successfully."}, status=status.HTTP_200_OK)
-        except Subscription.DoesNotExist:
+        subscriptions = Subscription.objects.filter(user=request.user)
+        if not subscriptions.exists():
             return Response({"detail": "Subscription not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        if not subscriptions.filter(is_active=True).update(is_active=False):
+            return Response({"detail": "Your subscription is already inactive."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-@extend_schema(responses={200: MessageResponseSerializer})
+        return Response({"detail": "Subscription cancelled successfully."}, status=status.HTTP_200_OK)
+
+
+@extend_schema(request=None, responses={200: MessageResponseSerializer})
 class RenewSubscriptionView(APIView):
     serializer_class = MessageResponseSerializer
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request):
-        subscription, created = Subscription.objects.get_or_create(user=request.user)
-
-        if subscription.is_active and subscription.end_date and subscription.end_date > timezone.now():
-            subscription.end_date += timedelta(days=30)
-        else:
-            subscription.is_active = True
-            subscription.end_date = timezone.now() + timedelta(days=30)
-
-        subscription.save()
+        subscription = activate_subscription(request.user)
 
         PaymentHistory.objects.create(
             user=request.user,
-            amount=50000,
+            amount=subscription_price(),
             status='Success'
         )
 

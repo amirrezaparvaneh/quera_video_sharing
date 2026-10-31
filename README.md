@@ -13,9 +13,9 @@ A Django REST API for a video-sharing application, with user accounts, video upl
 ### Features
 
 - Registration with a unique email address, username/password login, and DRF authentication tokens.
-- Video CRUD endpoints with file uploads and a premium flag.
+- Video endpoints with file uploads and a premium flag; only staff can manage videos, and premium videos are limited to subscribers.
 - Video detail logic that increments the view counter and records authenticated users' watch history.
-- Comment and rating CRUD endpoints.
+- Comment and rating endpoints with owner-only changes and 1–5 scores, one rating per user and video.
 - User-scoped subscription, payment, payment-history, and watch-history listings.
 - Simulated payments that create and activate a 30-day subscription; separate renewal and cancellation endpoints.
 - Django admin, session authentication, OpenAPI schema, and Swagger UI.
@@ -104,7 +104,7 @@ All paths below are relative to the local server and include their required trai
 | `/api/finance/cancel/` | POST | Deactivate the user's subscription |
 | `/api/finance/renew/` | POST | Extend or reactivate a subscription for 30 days |
 
-Registration and login accept anonymous requests. Video, comment, and rating writes require authentication. Finance and history endpoints require authentication. Premium video object access permits staff or users with an active subscription; see the access-control limitations below.
+Registration and login accept anonymous requests. Videos and their comments and ratings can be read by anyone, but the file of a premium video is hidden in lists and its detail page is open only to staff and to users with an active, unexpired subscription. Only staff can create, change, or delete videos. Comments and ratings need a logged-in user, can be changed only by their owner (or staff), and for premium videos require premium access. A rating is a score from 1 to 5, one per user and video. Payments are simulated at a fixed price (`SUBSCRIPTION_PRICE`), are created but not edited, and each payment or renewal extends the user's single subscription by 30 days. Finance and history endpoints require authentication.
 
 ### Example requests
 
@@ -169,26 +169,22 @@ requirements.txt  Pinned dependencies
 
 The diagram in `docs/` is a design reference and does not include the newer `PaymentHistory` model. Consult the models and migrations for the implemented schema.
 
-### Checks and current limitations
+### Checks and known limitations
 
-Run the existing suite:
+Run the test suite (41 tests covering registration, login, video and premium access, comments, ratings, watch history, and subscriptions; uploads go to a temporary media directory):
 
 ```bash
 python manage.py test
 ```
 
-The suite contains five tests for registration and video access; `subscriptions/tests.py` has no test cases. Video tests write uploaded files through the configured storage. During this documentation review, tests were run with a temporary media directory to avoid leaving uploads in the source tree.
+Configuration is read from environment variables. Defaults suit local development; for any real deployment set `DJANGO_DEBUG=False`, `DJANGO_SECRET_KEY`, and `DJANGO_ALLOWED_HOSTS` (the app refuses to start without a secret key when debug is off). Uploaded files are stored under `media/` and served by Django only while `DEBUG` is on.
 
-Known issues retained unchanged in this comment/documentation cleanup:
+Known limitations:
 
-- **Video retrieval:** `VideoViewSet.retrieve()` uses `Response` without importing it, causing a `NameError` after updating the counter and, for authenticated users, history. Two video-access tests error for this reason.
-- **Duplicate model definitions:** `videos/models.py` defines `WatchHistory` twice and declares `Video.views_count` twice. Django emits a model-registration warning; `manage.py check` otherwise reports no issues.
-- **Subscription renewal and cancellation:** a user can have multiple subscriptions, but these views assume one. Multiple records can raise `MultipleObjectsReturned`; renewal for a user without a subscription tries to create one without the required `end_date`.
-- **Premium access:** the permission checks `is_active` without checking expiry. Object permissions do not filter the public video list, which includes premium metadata and file references.
-- **Write permissions and ratings:** there is no owner-only enforcement for video, comment, or rating changes. Ratings have no explicit 1–5 range or per-user/video uniqueness rule. Registration uses `create_user()` without explicitly applying the configured password validators.
-- **View accounting:** retrieving details counts as a view rather than confirmed playback; counter updates are not atomic, and repeated requests create additional watch-history rows.
-- **Billing:** payments are simulated and the payment/subscription writes are not wrapped in an explicit transaction. `Payment` and `PaymentHistory` are separate records, not a unified billing ledger.
-- **Media and deployment:** `MEDIA_ROOT`, `MEDIA_URL`, and media-serving routes are not configured. Uploaded files use the `videos/` upload prefix with default storage settings; playback is not configured. Settings include `DEBUG=True`, a development secret, and an empty `ALLOWED_HOSTS`. Deployment, protected media delivery, and production storage require separate configuration.
+- **Billing:** payments are simulated, with no payment gateway. `Payment` and `PaymentHistory` are separate records, not a unified ledger.
+- **View accounting:** opening a video's detail page counts as a view, not as confirmed playback, and repeated requests add watch-history rows.
+- **Media delivery:** the file URLs of premium videos are visible to anyone who has access, and the media files themselves are not protected once the URL is known. Production storage and protected delivery need separate configuration.
+- **Database:** SQLite is used for local development.
 
 ---
 
@@ -294,7 +290,7 @@ python manage.py runserver
 | `/api/finance/cancel/` | POST | غیرفعال‌سازی اشتراک کاربر |
 | `/api/finance/renew/` | POST | تمدید یا فعال‌سازی مجدد اشتراک برای ۳۰ روز |
 
-ثبت‌نام و ورود بدون احراز هویت قابل استفاده‌اند. تغییر ویدیو، نظر و امتیاز به احراز هویت نیاز دارد؛ مسیرهای مالی و تاریخچه نیز مخصوص کاربران واردشده هستند. دسترسی به شیء ویدیوی ویژه برای کارکنان یا دارندگان اشتراک فعال مجاز است؛ محدودیت‌های این کنترل دسترسی در ادامه توضیح داده شده است.
+ثبت‌نام و ورود بدون احراز هویت قابل استفاده‌اند. همه می‌توانند ویدیوها، نظرها و امتیازها را بخوانند؛ اما فایل ویدیوی ویژه در فهرست پنهان است و صفحه جزئیات آن فقط برای کارکنان و کاربران دارای اشتراک فعال و منقضی‌نشده باز می‌شود. فقط کارکنان می‌توانند ویدیو بسازند، ویرایش کنند یا حذف کنند. نظر و امتیاز به کاربر واردشده نیاز دارد، فقط توسط مالک آن (یا کارکنان) قابل تغییر است و برای ویدیوی ویژه دسترسی ویژه لازم است. امتیاز عددی از ۱ تا ۵ است و برای هر کاربر و ویدیو فقط یکی ثبت می‌شود. پرداخت‌ها با قیمت ثابت (`SUBSCRIPTION_PRICE`) شبیه‌سازی می‌شوند، فقط ساخته و خوانده می‌شوند و هر پرداخت یا تمدید، اشتراک واحد کاربر را ۳۰ روز تمدید می‌کند. مسیرهای مالی و تاریخچه نیز مخصوص کاربران واردشده‌اند.
 
 ### نمونه درخواست‌ها
 
@@ -359,23 +355,19 @@ curl -X POST http://127.0.0.1:8000/api/finance/payments/ \
 
 نمودار پوشه `docs/` یک مرجع طراحی است و مدل جدیدتر `PaymentHistory` را ندارد. برای ساختار پیاده‌سازی‌شده، مدل‌ها و مایگریشن‌ها را بررسی کنید.
 
-### بررسی‌ها و محدودیت‌های فعلی
+### بررسی‌ها و محدودیت‌های شناخته‌شده
 
-اجرای تست‌های موجود:
+اجرای تست‌ها (۴۱ تست برای ثبت‌نام، ورود، دسترسی به ویدیو و ویدیوی ویژه، نظر، امتیاز، تاریخچه تماشا و اشتراک؛ فایل‌های بارگذاری‌شده در پوشه موقت رسانه ذخیره می‌شوند):
 
 ```bash
 python manage.py test
 ```
 
-پنج تست برای ثبت‌نام و دسترسی به ویدیو وجود دارد؛ فایل `subscriptions/tests.py` فاقد مورد آزمون است. تست‌های ویدیو در فضای ذخیره‌سازی تنظیم‌شده فایل ایجاد می‌کنند. در این بازبینی، تست‌ها با پوشه موقت رسانه اجرا شدند تا فایل آزمایشی در کد پروژه باقی نماند.
+پیکربندی از متغیرهای محیطی خوانده می‌شود. مقادیر پیش‌فرض برای توسعه محلی مناسب‌اند؛ برای استقرار واقعی `DJANGO_DEBUG=False`، `DJANGO_SECRET_KEY` و `DJANGO_ALLOWED_HOSTS` را تنظیم کنید (وقتی debug خاموش باشد و کلید مخفی تنظیم نشده باشد، برنامه اجرا نمی‌شود). فایل‌های بارگذاری‌شده در پوشه `media/` ذخیره می‌شوند و فقط وقتی `DEBUG` روشن است توسط Django ارائه می‌شوند.
 
-موارد زیر در این پاک‌سازی توضیحات و مستندسازی، بدون تغییر باقی مانده‌اند:
+محدودیت‌های شناخته‌شده:
 
-- **دریافت جزئیات ویدیو:** متد `VideoViewSet.retrieve()` از `Response` بدون ایمپورت استفاده می‌کند و پس از افزایش بازدید و ثبت تاریخچه برای کاربر واردشده، خطای `NameError` می‌دهد. دو تست دسترسی به ویدیو به همین علت خطا دارند.
-- **تعریف‌های تکراری:** مدل `WatchHistory` و فیلد `Video.views_count` هرکدام دوبار در `videos/models.py` تعریف شده‌اند. Django هشدار ثبت مجدد مدل می‌دهد؛ دستور `manage.py check` در سایر بررسی‌ها مشکلی گزارش نمی‌کند.
-- **تمدید و لغو اشتراک:** مدل اجازه چند اشتراک برای یک کاربر را می‌دهد، اما این مسیرها وجود تنها یک اشتراک را فرض می‌کنند. چند رکورد ممکن است خطای `MultipleObjectsReturned` ایجاد کند؛ تمدید برای کاربر بدون اشتراک نیز تلاش می‌کند رکوردی بدون فیلد اجباری `end_date` بسازد.
-- **دسترسی ویژه:** مجوز فقط `is_active` را بررسی می‌کند و تاریخ انقضا را در نظر نمی‌گیرد. مجوز سطح شیء، فهرست عمومی ویدیوها را فیلتر نمی‌کند؛ اطلاعات و ارجاع فایل ویدیوهای ویژه نیز در فهرست هستند.
-- **مجوز تغییر و امتیازدهی:** تغییر ویدیو، نظر و امتیاز به مالک محدود نشده است. امتیاز بازه صریح ۱ تا ۵ یا قید یکتایی برای هر کاربر و ویدیو ندارد. ثبت‌نام از `create_user()` استفاده می‌کند، بدون اینکه اعتبارسنج‌های رمز عبور تنظیم‌شده را صریحاً اجرا کند.
-- **شمارش بازدید:** دریافت جزئیات به‌عنوان بازدید ثبت می‌شود، نه پخش تأییدشده. افزایش شمارنده اتمیک نیست و درخواست‌های تکراری رکوردهای جدید تاریخچه ایجاد می‌کنند.
-- **پرداخت:** پرداخت‌ها شبیه‌سازی‌شده‌اند و عملیات ثبت پرداخت و اشتراک در تراکنش صریح قرار نگرفته‌اند. `Payment` و `PaymentHistory` رکوردهای جداگانه هستند و دفتر مالی یکپارچه‌ای تشکیل نمی‌دهند.
-- **رسانه و استقرار:** `MEDIA_ROOT`، `MEDIA_URL` و مسیر ارائه فایل رسانه تنظیم نشده‌اند. فایل‌ها با پیشوند `videos/` و تنظیمات پیش‌فرض ذخیره‌سازی ثبت می‌شوند؛ پخش ویدیو تنظیم نشده است. تنظیمات شامل `DEBUG=True`، کلید توسعه و `ALLOWED_HOSTS` خالی هستند. استقرار عملیاتی، ارائه محافظت‌شده رسانه و ذخیره‌سازی عملیاتی به پیکربندی جداگانه نیاز دارند.
+- **پرداخت:** پرداخت‌ها شبیه‌سازی‌شده‌اند و درگاه پرداخت ندارند. `Payment` و `PaymentHistory` رکوردهای جداگانه‌اند و دفتر مالی یکپارچه نیستند.
+- **شمارش بازدید:** باز کردن صفحه جزئیات ویدیو بازدید حساب می‌شود، نه پخش تأییدشده؛ درخواست‌های تکراری رکورد جدید در تاریخچه می‌سازند.
+- **ارائه رسانه:** نشانی فایل ویدیوی ویژه برای کسی که دسترسی دارد دیده می‌شود و خود فایل‌ها پس از دانستن نشانی محافظت نشده‌اند. ذخیره‌سازی عملیاتی و ارائه محافظت‌شده به پیکربندی جداگانه نیاز دارد.
+- **پایگاه داده:** برای توسعه محلی از SQLite استفاده می‌شود.

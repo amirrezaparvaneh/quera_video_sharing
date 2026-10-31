@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import Subscription, Payment, PaymentHistory
-from datetime import timedelta
-from django.utils import timezone
+from django.db import transaction
+
+from .services import activate_subscription, subscription_price
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -14,30 +15,20 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ['id', 'amount', 'status', 'created_at']
-        read_only_fields = ['status', 'created_at']
+        read_only_fields = ['amount', 'status', 'created_at']
 
+    @transaction.atomic
     def create(self, validated_data):
         user = self.context['request'].user
-        amount = validated_data.get('amount')
+        subscription = activate_subscription(user)
 
-        end_date = timezone.now() + timedelta(days=30)
-        subscription = Subscription.objects.create(
-            user=user,
-            end_date=end_date,
-            is_active=False
-        )
-
-        payment = Payment.objects.create(
+        # Simulated payment: no payment gateway is contacted.
+        return Payment.objects.create(
             user=user,
             subscription=subscription,
-            amount=amount,
-            status='success'  # Simulate a successful payment without contacting a payment gateway.
+            amount=subscription_price(),
+            status='success',
         )
-
-        subscription.is_active = True
-        subscription.save()
-
-        return payment
 
 
 class PaymentHistorySerializer(serializers.ModelSerializer):

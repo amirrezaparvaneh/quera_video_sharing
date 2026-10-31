@@ -33,3 +33,30 @@ class UserAuthenticationTests(APITestCase):
         response = self.client.post(self.register_url, self.user_data)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_registration_returns_token(self):
+        response = self.client.post(self.register_url, self.user_data)
+        self.assertIn('token', response.data)
+
+    def test_user_registration_rejects_weak_password(self):
+        for password in ('1', '12345678', 'password'):
+            data = {**self.user_data, 'password': password}
+            response = self.client.post(self.register_url, data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, password)
+            self.assertIn('password', response.data)
+        self.assertEqual(User.objects.count(), 0)
+
+    def test_login_returns_token(self):
+        User.objects.create_user(**self.user_data)
+        response = self.client.post('/api/users/login/', {
+            'username': 'testuser', 'password': 'StrongPassword123!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('token', response.data)
+
+    def test_login_rejects_wrong_password(self):
+        User.objects.create_user(**self.user_data)
+        response = self.client.post('/api/users/login/', {
+            'username': 'testuser', 'password': 'wrong'
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
