@@ -1,5 +1,7 @@
 # Quera Video Sharing
 
+![Swagger UI for the Quera Video Sharing API](docs/screenshots/swagger-ui.png)
+
 [![Language: English](https://img.shields.io/badge/Language-English-blue.svg)](#english)
 [![Language: Persian](https://img.shields.io/badge/Language-Persian-green.svg)](#فارسی)
 ![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django&logoColor=white)
