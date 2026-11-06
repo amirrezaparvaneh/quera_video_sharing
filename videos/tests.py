@@ -51,7 +51,7 @@ class BaseVideoTestCase(APITestCase):
         )
 
     def video_url(self, video):
-        return f'/api/videos/videos/{video.id}/'
+        return f'/api/v1/videos/videos/{video.id}/'
 
 
 class VideoPermissionTests(BaseVideoTestCase):
@@ -98,7 +98,7 @@ class VideoPermissionTests(BaseVideoTestCase):
     def test_list_hides_premium_file_from_non_subscribers(self):
         for user in (None, self.normal_user):
             self.client.force_authenticate(user=user)
-            response = self.client.get('/api/videos/videos/')
+            response = self.client.get('/api/v1/videos/videos/')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             by_id = {item['id']: item for item in response.data}
             self.assertIsNone(by_id[self.premium_video.id]['video_file'])
@@ -106,7 +106,7 @@ class VideoPermissionTests(BaseVideoTestCase):
 
     def test_list_shows_premium_file_to_subscribers(self):
         self.client.force_authenticate(user=self.premium_user)
-        response = self.client.get('/api/videos/videos/')
+        response = self.client.get('/api/v1/videos/videos/')
         by_id = {item['id']: item for item in response.data}
         self.assertIsNotNone(by_id[self.premium_video.id]['video_file'])
 
@@ -119,12 +119,12 @@ class VideoWriteTests(BaseVideoTestCase):
         }
 
     def test_anonymous_cannot_create_video(self):
-        response = self.client.post('/api/videos/videos/', self.payload(), format='multipart')
+        response = self.client.post('/api/v1/videos/videos/', self.payload(), format='multipart')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_normal_user_cannot_create_update_or_delete_video(self):
         self.client.force_authenticate(user=self.premium_user)
-        response = self.client.post('/api/videos/videos/', self.payload(), format='multipart')
+        response = self.client.post('/api/v1/videos/videos/', self.payload(), format='multipart')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.patch(self.video_url(self.free_video), {'title': 'x'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -134,7 +134,7 @@ class VideoWriteTests(BaseVideoTestCase):
 
     def test_staff_can_create_update_and_delete_video(self):
         self.client.force_authenticate(user=self.staff_user)
-        response = self.client.post('/api/videos/videos/', self.payload(), format='multipart')
+        response = self.client.post('/api/v1/videos/videos/', self.payload(), format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.patch(self.video_url(self.free_video), {'title': 'renamed'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -150,7 +150,7 @@ class WatchHistoryTests(BaseVideoTestCase):
         self.assertEqual(response.data['views_count'], 1)
         self.assertEqual(WatchHistory.objects.filter(user=self.normal_user).count(), 1)
 
-        response = self.client.get('/api/videos/watch-history/')
+        response = self.client.get('/api/v1/videos/watch-history/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['video'], self.free_video.id)
@@ -163,16 +163,16 @@ class WatchHistoryTests(BaseVideoTestCase):
 
     def test_history_requires_login_and_is_per_user(self):
         self.assertEqual(
-            self.client.get('/api/videos/watch-history/').status_code,
+            self.client.get('/api/v1/videos/watch-history/').status_code,
             status.HTTP_401_UNAUTHORIZED,
         )
         WatchHistory.objects.create(user=self.premium_user, video=self.free_video)
         self.client.force_authenticate(user=self.normal_user)
-        self.assertEqual(self.client.get('/api/videos/watch-history/').data, [])
+        self.assertEqual(self.client.get('/api/v1/videos/watch-history/').data, [])
 
 
 class CommentTests(BaseVideoTestCase):
-    url = '/api/videos/comments/'
+    url = '/api/v1/videos/comments/'
 
     def test_create_comment_sets_current_user(self):
         self.client.force_authenticate(user=self.normal_user)
@@ -210,7 +210,7 @@ class CommentTests(BaseVideoTestCase):
 
 
 class RatingTests(BaseVideoTestCase):
-    url = '/api/videos/ratings/'
+    url = '/api/v1/videos/ratings/'
 
     def test_score_must_be_between_one_and_five(self):
         self.client.force_authenticate(user=self.normal_user)

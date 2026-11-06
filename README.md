@@ -84,7 +84,7 @@ You need Git, Python with `venv`, and access to a package index containing the p
    python manage.py runserver
    ```
 
-The server listens at `http://127.0.0.1:8000/`. There is no homepage route; open `/api/docs/` for Swagger UI or `/admin/` for administration. The raw OpenAPI schema is at `/api/schema/`, and the browsable API's session login is at `/api-auth/login/`.
+The server listens at `http://127.0.0.1:8000/`. There is no homepage route; open `/api/v1/docs/` for Swagger UI or `/admin/` for administration. The raw OpenAPI schema is at `/api/v1/schema/`, and the browsable API's session login is at `/api-auth/login/`.
 
 ### API reference
 
@@ -92,17 +92,17 @@ All paths below are relative to the local server and include their required trai
 
 | Path | Methods | Purpose |
 | --- | --- | --- |
-| `/api/users/register/` | POST | Register and return a token, user ID, and username |
-| `/api/users/login/` | POST | Authenticate and return a token, user ID, and username |
-| `/api/videos/videos/` | CRUD | Video metadata and file uploads |
-| `/api/videos/comments/` | CRUD | Comments |
-| `/api/videos/ratings/` | CRUD | Ratings |
-| `/api/videos/watch-history/` | GET | Current user's watch history, newest first |
-| `/api/finance/subscriptions/` | GET | Current user's subscriptions; detail at `/<id>/` |
-| `/api/finance/payments/` | CRUD | Current user's simulated payments |
-| `/api/finance/payments-history/` | GET | Current user's separate payment-history records, newest first |
-| `/api/finance/cancel/` | POST | Deactivate the user's subscription |
-| `/api/finance/renew/` | POST | Extend or reactivate a subscription for 30 days |
+| `/api/v1/users/register/` | POST | Register and return a token, user ID, and username |
+| `/api/v1/users/login/` | POST | Authenticate and return a token, user ID, and username |
+| `/api/v1/videos/videos/` | CRUD | Video metadata and file uploads |
+| `/api/v1/videos/comments/` | CRUD | Comments |
+| `/api/v1/videos/ratings/` | CRUD | Ratings |
+| `/api/v1/videos/watch-history/` | GET | Current user's watch history, newest first |
+| `/api/v1/finance/subscriptions/` | GET | Current user's subscriptions; detail at `/<id>/` |
+| `/api/v1/finance/payments/` | CRUD | Current user's simulated payments |
+| `/api/v1/finance/payments-history/` | GET | Current user's separate payment-history records, newest first |
+| `/api/v1/finance/cancel/` | POST | Deactivate the user's subscription |
+| `/api/v1/finance/renew/` | POST | Extend or reactivate a subscription for 30 days |
 
 Registration and login accept anonymous requests. Videos and their comments and ratings can be read by anyone, but the file of a premium video is hidden in lists and its detail page is open only to staff and to users with an active, unexpired subscription. Only staff can create, change, or delete videos. Comments and ratings need a logged-in user, can be changed only by their owner (or staff), and for premium videos require premium access. A rating is a score from 1 to 5, one per user and video. Payments are simulated at a fixed price (`SUBSCRIPTION_PRICE`), are created but not edited, and each payment or renewal extends the user's single subscription by 30 days. Finance and history endpoints require authentication.
 
@@ -111,7 +111,7 @@ Registration and login accept anonymous requests. Videos and their comments and 
 Register a user:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/users/register/ \
+curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
   -H 'Content-Type: application/json' \
   -d '{"username":"demo","email":"demo@example.com","password":"ExamplePassword123!"}'
 ```
@@ -119,7 +119,7 @@ curl -X POST http://127.0.0.1:8000/api/users/register/ \
 Log in:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/users/login/ \
+curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
   -H 'Content-Type: application/json' \
   -d '{"username":"demo","password":"ExamplePassword123!"}'
 ```
@@ -128,14 +128,14 @@ Copy the returned `token` into a shell variable. The authorization scheme is `To
 
 ```bash
 export API_TOKEN='replace-with-returned-token'
-curl http://127.0.0.1:8000/api/videos/watch-history/ \
+curl http://127.0.0.1:8000/api/v1/videos/watch-history/ \
   -H "Authorization: Token $API_TOKEN"
 ```
 
 Upload a video using an existing local file:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/videos/videos/ \
+curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
   -H "Authorization: Token $API_TOKEN" \
   -F 'title=Demo video' \
   -F 'description=An example upload' \
@@ -146,7 +146,7 @@ curl -X POST http://127.0.0.1:8000/api/videos/videos/ \
 Create a simulated payment and a new 30-day subscription:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/finance/payments/ \
+curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
   -H "Authorization: Token $API_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"amount":"50000.00"}'
@@ -270,7 +270,7 @@ python manage.py check
 python manage.py runserver
 ```
 
-آدرس سرور `http://127.0.0.1:8000/` است. مسیر صفحه اصلی تعریف نشده است؛ برای مستندات تعاملی به `/api/docs/` و برای پنل مدیریت به `/admin/` بروید. اسکیما OpenAPI در `/api/schema/` و ورود نشست‌محور API در `/api-auth/login/` قرار دارد.
+آدرس سرور `http://127.0.0.1:8000/` است. مسیر صفحه اصلی تعریف نشده است؛ برای مستندات تعاملی به `/api/v1/docs/` و برای پنل مدیریت به `/admin/` بروید. اسکیما OpenAPI در `/api/v1/schema/` و ورود نشست‌محور API در `/api-auth/login/` قرار دارد.
 
 ### مسیرهای API
 
@@ -278,17 +278,17 @@ python manage.py runserver
 
 | مسیر | متدها | کاربرد |
 | --- | --- | --- |
-| `/api/users/register/` | POST | ثبت‌نام و دریافت توکن، شناسه و نام کاربری |
-| `/api/users/login/` | POST | ورود و دریافت توکن، شناسه و نام کاربری |
-| `/api/videos/videos/` | CRUD | اطلاعات و فایل ویدیو |
-| `/api/videos/comments/` | CRUD | نظرها |
-| `/api/videos/ratings/` | CRUD | امتیازها |
-| `/api/videos/watch-history/` | GET | تاریخچه تماشای کاربر، از جدید به قدیم |
-| `/api/finance/subscriptions/` | GET | اشتراک‌های کاربر؛ جزئیات در `/<id>/` |
-| `/api/finance/payments/` | CRUD | پرداخت‌های شبیه‌سازی‌شده کاربر |
-| `/api/finance/payments-history/` | GET | رکوردهای جداگانه تاریخچه پرداخت، از جدید به قدیم |
-| `/api/finance/cancel/` | POST | غیرفعال‌سازی اشتراک کاربر |
-| `/api/finance/renew/` | POST | تمدید یا فعال‌سازی مجدد اشتراک برای ۳۰ روز |
+| `/api/v1/users/register/` | POST | ثبت‌نام و دریافت توکن، شناسه و نام کاربری |
+| `/api/v1/users/login/` | POST | ورود و دریافت توکن، شناسه و نام کاربری |
+| `/api/v1/videos/videos/` | CRUD | اطلاعات و فایل ویدیو |
+| `/api/v1/videos/comments/` | CRUD | نظرها |
+| `/api/v1/videos/ratings/` | CRUD | امتیازها |
+| `/api/v1/videos/watch-history/` | GET | تاریخچه تماشای کاربر، از جدید به قدیم |
+| `/api/v1/finance/subscriptions/` | GET | اشتراک‌های کاربر؛ جزئیات در `/<id>/` |
+| `/api/v1/finance/payments/` | CRUD | پرداخت‌های شبیه‌سازی‌شده کاربر |
+| `/api/v1/finance/payments-history/` | GET | رکوردهای جداگانه تاریخچه پرداخت، از جدید به قدیم |
+| `/api/v1/finance/cancel/` | POST | غیرفعال‌سازی اشتراک کاربر |
+| `/api/v1/finance/renew/` | POST | تمدید یا فعال‌سازی مجدد اشتراک برای ۳۰ روز |
 
 ثبت‌نام و ورود بدون احراز هویت قابل استفاده‌اند. همه می‌توانند ویدیوها، نظرها و امتیازها را بخوانند؛ اما فایل ویدیوی ویژه در فهرست پنهان است و صفحه جزئیات آن فقط برای کارکنان و کاربران دارای اشتراک فعال و منقضی‌نشده باز می‌شود. فقط کارکنان می‌توانند ویدیو بسازند، ویرایش کنند یا حذف کنند. نظر و امتیاز به کاربر واردشده نیاز دارد، فقط توسط مالک آن (یا کارکنان) قابل تغییر است و برای ویدیوی ویژه دسترسی ویژه لازم است. امتیاز عددی از ۱ تا ۵ است و برای هر کاربر و ویدیو فقط یکی ثبت می‌شود. پرداخت‌ها با قیمت ثابت (`SUBSCRIPTION_PRICE`) شبیه‌سازی می‌شوند، فقط ساخته و خوانده می‌شوند و هر پرداخت یا تمدید، اشتراک واحد کاربر را ۳۰ روز تمدید می‌کند. مسیرهای مالی و تاریخچه نیز مخصوص کاربران واردشده‌اند.
 
@@ -297,7 +297,7 @@ python manage.py runserver
 ثبت‌نام:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/users/register/ \
+curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
   -H 'Content-Type: application/json' \
   -d '{"username":"demo","email":"demo@example.com","password":"ExamplePassword123!"}'
 ```
@@ -305,7 +305,7 @@ curl -X POST http://127.0.0.1:8000/api/users/register/ \
 ورود:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/users/login/ \
+curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
   -H 'Content-Type: application/json' \
   -d '{"username":"demo","password":"ExamplePassword123!"}'
 ```
@@ -314,14 +314,14 @@ curl -X POST http://127.0.0.1:8000/api/users/login/ \
 
 ```bash
 export API_TOKEN='replace-with-returned-token'
-curl http://127.0.0.1:8000/api/videos/watch-history/ \
+curl http://127.0.0.1:8000/api/v1/videos/watch-history/ \
   -H "Authorization: Token $API_TOKEN"
 ```
 
 بارگذاری یک فایل ویدیوی موجود در سیستم:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/videos/videos/ \
+curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
   -H "Authorization: Token $API_TOKEN" \
   -F 'title=Demo video' \
   -F 'description=An example upload' \
@@ -332,7 +332,7 @@ curl -X POST http://127.0.0.1:8000/api/videos/videos/ \
 ایجاد پرداخت شبیه‌سازی‌شده و اشتراک جدید ۳۰روزه:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/finance/payments/ \
+curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
   -H "Authorization: Token $API_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"amount":"50000.00"}'
