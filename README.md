@@ -1,58 +1,73 @@
+# Quera Video Sharing
 
-# Quera Video Sharing 🎬
+![Swagger UI for the Quera Video Sharing API](docs/screenshots/swagger-ui.png)
 
-[![Persian](https://img.shields.io/badge/Language-Persian-green.svg)](#persian)
-[![English](https://img.shields.io/badge/Language-English-blue.svg)](#english)
+[![Language: English](https://img.shields.io/badge/Language-English-blue.svg)](#english)
+[![Language: Persian](https://img.shields.io/badge/Language-Persian-green.svg)](#فارسی)
+![Django](https://img.shields.io/badge/Django-6.1-092E20?logo=django&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
+
+<a id="english"></a>
 
 ## English
 
-### Overview
+A Django REST API for a video-sharing service. It provides user accounts, video uploads, comments, ratings, watch history, and simulated subscriptions and payments.
 
-A Django REST API for a video-sharing application, with user accounts, video uploads, comments, ratings, watch history, and simulated subscriptions and payments. This repository contains the backend; it does not include a frontend, video transcoding, or a streaming service. The implementation is a development project with known limitations listed below.
+This repository is the backend only. It does not include a frontend, video transcoding, or a streaming service.
+
+### Contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [API reference](#api-reference)
+- [Example requests](#example-requests)
+- [Project structure](#project-structure)
+- [Testing](#testing)
+- [Configuration](#configuration)
+- [Known limitations](#known-limitations)
 
 ### Features
 
-- Registration with a unique email address, username/password login, and DRF authentication tokens.
-- Video endpoints with file uploads and a premium flag; only staff can manage videos, and premium videos are limited to subscribers.
-- Video detail logic that increments the view counter and records authenticated users' watch history.
-- Comment and rating endpoints with owner-only changes and 1–5 scores, one rating per user and video.
-- User-scoped subscription, payment, payment-history, and watch-history listings.
-- Simulated payments that create and activate a 30-day subscription; separate renewal and cancellation endpoints.
-- Django admin, session authentication, OpenAPI schema, and Swagger UI.
+- **Accounts:** registration with a unique email address, username and password login, and token authentication.
+- **Videos:** create, read, update, and delete videos with file uploads. Only staff can manage videos. Premium videos are restricted to subscribers.
+- **Views and history:** opening a video's detail page increments its view counter and, for authenticated users, records a watch-history entry.
+- **Engagement:** comments and ratings (1 to 5, one rating per user and video). Only the owner, or staff, can change or delete them.
+- **Subscriptions and payments:** simulated payments create or extend a 30-day subscription. Renewal and cancellation are separate endpoints.
+- **Tooling:** Django admin, session authentication for the browsable API, an OpenAPI schema, and Swagger UI.
 
 ### Tech stack
 
-Versions below are pinned in `requirements.txt`; Python 3.14.4 is the interpreter in the inspected local environment.
-
-| Component | Version / configuration |
+| Component | Version or configuration |
 | --- | --- |
-| Python | 3.14.4 locally |
+| Python | 3.14 |
 | Django | 6.1.1 |
 | Django REST Framework | 3.18.1 |
 | drf-spectacular | 0.30.0 |
 | Database | SQLite (`db.sqlite3`) |
 | Authentication | DRF tokens and Django sessions |
-| Application interfaces | WSGI and ASGI |
 
-### Setup 🚀
+Exact dependency versions are pinned in [`requirements.txt`](requirements.txt).
 
-You need Git, Python with `venv`, and access to a package index containing the pinned dependencies. The commands below use a Unix-like shell. The checked-in settings use SQLite and do not load an `.env` file.
+### Getting started
 
-1. Clone the repository and enter its directory:
+**Prerequisites:** Git, Python 3.14 with `venv`, and access to a package index.
+
+1. Clone the repository:
 
    ```bash
    git clone https://github.com/amirrezaparvaneh/quera_video_sharing.git
    cd quera_video_sharing
    ```
 
-2. Create and activate a virtual environment (the inspected environment uses Python 3.14):
+2. Create and activate a virtual environment:
 
    ```bash
    python3.14 -m venv venv
    source venv/bin/activate
    ```
 
-   On Windows PowerShell, use:
+   On Windows (PowerShell):
 
    ```powershell
    py -3.14 -m venv venv
@@ -65,50 +80,69 @@ You need Git, Python with `venv`, and access to a package index containing the p
    python -m pip install -r requirements.txt
    ```
 
-4. Apply the existing migrations to create the local database:
+4. Apply the migrations:
 
    ```bash
    python manage.py migrate
    ```
 
-5. Optionally create an administrator:
+5. Optionally, create an administrator account:
 
    ```bash
    python manage.py createsuperuser
    ```
 
-6. Check the configuration and start the development server:
+6. Verify the configuration and start the development server:
 
    ```bash
    python manage.py check
    python manage.py runserver
    ```
 
-The server listens at `http://127.0.0.1:8000/`. There is no homepage route; open `/api/v1/docs/` for Swagger UI or `/admin/` for administration. The raw OpenAPI schema is at `/api/v1/schema/`, and the browsable API's session login is at `/api-auth/login/`.
+The server listens on `http://127.0.0.1:8000/`. The root URL has no page. Use these instead:
+
+| URL | Purpose |
+| --- | --- |
+| `/api/v1/docs/` | Swagger UI |
+| `/api/v1/schema/` | Raw OpenAPI schema |
+| `/admin/` | Django admin |
+| `/api-auth/login/` | Session login for the browsable API |
 
 ### API reference
 
-All paths below are relative to the local server and include their required trailing slash. CRUD means list/create with `GET`/`POST` on the collection, and retrieve/update/delete with `GET`/`PUT`/`PATCH`/`DELETE` on `/<id>/`.
+All paths are relative to the server root and end with a trailing slash. For CRUD resources, the collection path supports `GET` (list) and `POST` (create), and the `<id>/` path supports `GET`, `PUT`, `PATCH`, and `DELETE`.
 
-| Path | Methods | Purpose |
+| Path | Methods | Description |
 | --- | --- | --- |
-| `/api/v1/users/register/` | POST | Register and return a token, user ID, and username |
-| `/api/v1/users/login/` | POST | Authenticate and return a token, user ID, and username |
+| `/api/v1/users/register/` | `POST` | Register a user; returns a token, user ID, and username |
+| `/api/v1/users/login/` | `POST` | Log in; returns a token, user ID, and username |
 | `/api/v1/videos/videos/` | CRUD | Video metadata and file uploads |
 | `/api/v1/videos/comments/` | CRUD | Comments |
 | `/api/v1/videos/ratings/` | CRUD | Ratings |
-| `/api/v1/videos/watch-history/` | GET | Current user's watch history, newest first |
-| `/api/v1/finance/subscriptions/` | GET | Current user's subscriptions; detail at `/<id>/` |
-| `/api/v1/finance/payments/` | CRUD | Current user's simulated payments |
-| `/api/v1/finance/payments-history/` | GET | Current user's separate payment-history records, newest first |
-| `/api/v1/finance/cancel/` | POST | Deactivate the user's subscription |
-| `/api/v1/finance/renew/` | POST | Extend or reactivate a subscription for 30 days |
+| `/api/v1/videos/watch-history/` | `GET` | The current user's watch history, newest first |
+| `/api/v1/finance/subscriptions/` | `GET` | The current user's subscriptions; details at `<id>/` |
+| `/api/v1/finance/payments/` | CRUD | The current user's simulated payments |
+| `/api/v1/finance/payments-history/` | `GET` | The current user's payment-history records, newest first |
+| `/api/v1/finance/renew/` | `POST` | Extend or reactivate the subscription for 30 days |
+| `/api/v1/finance/cancel/` | `POST` | Deactivate the current user's subscription |
 
-Registration and login accept anonymous requests. Videos and their comments and ratings can be read by anyone, but the file of a premium video is hidden in lists and its detail page is open only to staff and to users with an active, unexpired subscription. Only staff can create, change, or delete videos. Comments and ratings need a logged-in user, can be changed only by their owner (or staff), and for premium videos require premium access. A rating is a score from 1 to 5, one per user and video. Payments are simulated at a fixed price (`SUBSCRIPTION_PRICE`), are created but not edited, and each payment or renewal extends the user's single subscription by 30 days. Finance and history endpoints require authentication.
+**Access rules**
+
+- Registration and login are open to anonymous users.
+- Anyone can read videos, comments, and ratings. The file of a premium video is hidden from list responses. Its detail page is available only to staff and to users with an active, unexpired subscription.
+- Only staff can create, update, or delete videos.
+- Comments and ratings require authentication. Only their owner (or staff) can change them. Premium videos require premium access.
+- Finance and history endpoints require authentication.
+
+**Payments**
+
+Payments are simulated. No money is transferred, and no payment gateway is involved. The price is fixed by `SUBSCRIPTION_PRICE` (50000). Each payment or renewal extends the user's single subscription by 30 days.
 
 ### Example requests
 
-Register a user:
+Replace `http://127.0.0.1:8000` with your server address if it differs.
+
+**Register a user**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
@@ -116,7 +150,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
   -d '{"username":"demo","email":"demo@example.com","password":"ExamplePassword123!"}'
 ```
 
-Log in:
+**Log in**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
@@ -124,7 +158,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
   -d '{"username":"demo","password":"ExamplePassword123!"}'
 ```
 
-Copy the returned `token` into a shell variable. The authorization scheme is `Token`:
+Store the returned `token` value. Requests use the `Token` authorization scheme:
 
 ```bash
 export API_TOKEN='replace-with-returned-token'
@@ -132,7 +166,7 @@ curl http://127.0.0.1:8000/api/v1/videos/watch-history/ \
   -H "Authorization: Token $API_TOKEN"
 ```
 
-Upload a video using an existing local file:
+**Upload a video** (staff account required)
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
@@ -143,7 +177,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
   -F 'video_file=@/absolute/path/to/video.mp4'
 ```
 
-Create a simulated payment and a new 30-day subscription:
+**Create a simulated payment** (activates a 30-day subscription)
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
@@ -152,149 +186,190 @@ curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
   -d '{"amount":"50000.00"}'
 ```
 
-No money is transferred. The payment amount is supplied by the client and no currency is defined. Renewal separately writes a `PaymentHistory` entry with amount `50000` and status `Success`; creating a `Payment` does not create that history entry.
+Note: the client supplies `amount`, and no currency is defined. Renewal (`/finance/renew/`) writes a `PaymentHistory` record with amount `50000` and status `Success`. Creating a `Payment` does not write that record.
 
-### Project layout
+### Project structure
 
 ```text
-core/             Settings, root URLs, WSGI and ASGI entry points
+core/             Settings, root URL configuration, WSGI and ASGI entry points
 users/            Custom user model, registration, login, and tests
-videos/           Videos, comments, ratings, permissions, history, and tests
-subscriptions/    Subscriptions, simulated payments, and payment history
-*/migrations/     Database migrations for each application
-docs/             Entity relationship diagram (.drawio and .svg)
+videos/           Videos, comments, ratings, permissions, watch history, and tests
+subscriptions/    Subscriptions, simulated payments, payment history, and tests
+*/migrations/     Database migrations for each app
+docs/             Entity relationship diagram (draw.io source and SVG)
 manage.py         Django management entry point
 requirements.txt  Pinned dependencies
 ```
 
-The diagram in `docs/` is a design reference and does not include the newer `PaymentHistory` model. Consult the models and migrations for the implemented schema.
+The diagram in `docs/` is a design reference. It does not include the `PaymentHistory` model. The models and migrations are the source of truth for the implemented schema.
 
-### Checks and known limitations
-
-Run the test suite (41 tests covering registration, login, video and premium access, comments, ratings, watch history, and subscriptions; uploads go to a temporary media directory):
+### Testing
 
 ```bash
 python manage.py test
 ```
 
-Configuration is read from environment variables. Defaults suit local development; for any real deployment set `DJANGO_DEBUG=False`, `DJANGO_SECRET_KEY`, and `DJANGO_ALLOWED_HOSTS` (the app refuses to start without a secret key when debug is off). Uploaded files are stored under `media/` and served by Django only while `DEBUG` is on.
+The suite contains 41 tests covering registration, login, video and premium access, comments, ratings, watch history, and subscriptions. Uploaded files are written to a temporary media directory during tests.
 
-Known limitations:
+### Configuration
 
-- **Billing:** payments are simulated, with no payment gateway. `Payment` and `PaymentHistory` are separate records, not a unified ledger.
-- **View accounting:** opening a video's detail page counts as a view, not as confirmed playback, and repeated requests add watch-history rows.
-- **Media delivery:** the file URLs of premium videos are visible to anyone who has access, and the media files themselves are not protected once the URL is known. Production storage and protected delivery need separate configuration.
+Settings are read from environment variables. The defaults are for local development only.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DJANGO_DEBUG` | `True` | Enables debug mode. Set to `False` in production. |
+| `DJANGO_SECRET_KEY` | none | Required when `DJANGO_DEBUG` is `False`. |
+| `DJANGO_ALLOWED_HOSTS` | empty | Comma-separated list of allowed host names. |
+
+For a production deployment, set `DJANGO_DEBUG=False`, `DJANGO_SECRET_KEY`, and `DJANGO_ALLOWED_HOSTS`. Django refuses to start when debug mode is off and no secret key is set.
+
+Uploaded files are stored in `media/`. Django serves them only while `DEBUG` is enabled.
+
+### Known limitations
+
+- **Payments:** payments are simulated and there is no payment gateway. `Payment` and `PaymentHistory` are separate records, not a unified ledger.
+- **View counting:** opening a video's detail page counts as a view, not as confirmed playback. Repeated requests add watch-history entries.
+- **Media delivery:** the file URL of a premium video is visible to anyone who has access to it, and the file itself is not protected once its URL is known. Production storage and protected delivery require separate configuration.
 - **Database:** SQLite is used for local development.
 
 ---
 
-<a name="persian"></a>
+<a id="فارسی"></a>
 
 ## فارسی
 
-### معرفی
+یک API مبتنی بر Django REST Framework برای سرویس اشتراک‌گذاری ویدیو. این پروژه حساب کاربری، بارگذاری ویدیو، نظر، امتیاز، تاریخچه تماشا و اشتراک و پرداخت شبیه‌سازی‌شده را پوشش می‌دهد.
 
-این پروژه یک API مبتنی بر Django برای اشتراک‌گذاری ویدیو است و حساب کاربری، بارگذاری ویدیو، نظر، امتیاز، تاریخچه تماشا و اشتراک و پرداخت شبیه‌سازی‌شده را ارائه می‌کند. مخزن فقط شامل بک‌اند است و رابط کاربری، تبدیل فرمت ویدیو یا سرویس استریم ندارد. پروژه در وضعیت توسعه قرار دارد و محدودیت‌های فعلی آن در ادامه آمده است.
+این مخزن فقط بک‌اند است و رابط کاربری، تبدیل فرمت ویدیو و سرویس استریم ندارد.
+
+### فهرست
+
+- [قابلیت‌ها](#قابلیت‌ها)
+- [فناوری‌ها](#فناوری‌ها)
+- [شروع کار](#شروع-کار)
+- [مرجع API](#مرجع-api)
+- [نمونه درخواست‌ها](#نمونه-درخواست‌ها)
+- [ساختار پروژه](#ساختار-پروژه)
+- [تست‌ها](#تست‌ها)
+- [پیکربندی](#پیکربندی)
+- [محدودیت‌های شناخته‌شده](#محدودیت‌های-شناخته‌شده)
 
 ### قابلیت‌ها
 
-- ثبت‌نام با ایمیل یکتا، ورود با نام کاربری و رمز عبور و دریافت توکن DRF.
-- API ایجاد، مشاهده، ویرایش و حذف ویدیو، همراه با بارگذاری فایل و تعیین وضعیت ویژه.
-- منطق افزایش شمارنده بازدید هنگام دریافت جزئیات ویدیو و ثبت تاریخچه برای کاربران واردشده.
-- API ایجاد، مشاهده، ویرایش و حذف نظر و امتیاز.
-- فهرست اشتراک‌ها، پرداخت‌ها و تاریخچه پرداخت و تماشای مختص هر کاربر.
-- پرداخت شبیه‌سازی‌شده برای ایجاد و فعال‌سازی اشتراک ۳۰روزه و مسیرهای جداگانه تمدید و لغو.
-- پنل مدیریت Django، احراز هویت نشست‌محور، اسکیما OpenAPI و رابط Swagger UI.
+- **حساب کاربری:** ثبت‌نام با ایمیل یکتا، ورود با نام کاربری و رمز عبور، و احراز هویت با توکن.
+- **ویدیو:** ایجاد، مشاهده، ویرایش و حذف ویدیو همراه با بارگذاری فایل. فقط کارکنان می‌توانند ویدیو را مدیریت کنند. ویدیوهای ویژه فقط برای مشترکان قابل دسترسی‌اند.
+- **بازدید و تاریخچه:** باز کردن صفحه جزئیات ویدیو، شمارنده بازدید را افزایش می‌دهد و برای کاربران واردشده رکورد تاریخچه تماشا ثبت می‌کند.
+- **تعامل:** نظر و امتیاز (از ۱ تا ۵، با یک امتیاز برای هر کاربر و ویدیو). فقط مالک یا کارکنان می‌توانند آن‌ها را تغییر یا حذف کنند.
+- **اشتراک و پرداخت:** پرداخت شبیه‌سازی‌شده یک اشتراک ۳۰ روزه ایجاد یا تمدید می‌کند. تمدید و لغو اشتراک مسیرهای جداگانه دارند.
+- **ابزارهای توسعه:** پنل مدیریت Django، احراز هویت نشست‌محور برای رابط مرورگر API، اسکیمای OpenAPI و Swagger UI.
 
 ### فناوری‌ها
 
-نسخه‌های زیر در `requirements.txt` ثبت شده‌اند. نسخه پایتون در محیط محلی بررسی‌شده 3.14.4 است.
-
-| مؤلفه | نسخه یا تنظیمات |
+| مؤلفه | نسخه یا پیکربندی |
 | --- | --- |
-| Python | نسخه 3.14.4 در محیط محلی |
+| Python | 3.14 |
 | Django | 6.1.1 |
 | Django REST Framework | 3.18.1 |
 | drf-spectacular | 0.30.0 |
-| پایگاه داده | SQLite در فایل `db.sqlite3` |
+| پایگاه داده | SQLite (فایل `db.sqlite3`) |
 | احراز هویت | توکن DRF و نشست Django |
-| رابط اجرای برنامه | WSGI و ASGI |
 
-### نصب و راه‌اندازی 🚀
+نسخه دقیق وابستگی‌ها در [`requirements.txt`](requirements.txt) ثبت شده است.
 
-به Git، پایتون همراه با `venv` و دسترسی به مخزن بسته‌های حاوی نسخه‌های مشخص‌شده نیاز دارید. دستورهای اصلی برای محیط‌های شبه‌یونیکس هستند. تنظیمات موجود از SQLite استفاده می‌کنند و فایل `.env` را نمی‌خوانند.
+### شروع کار
 
-۱. مخزن را دریافت کنید و وارد پوشه پروژه شوید:
+**پیش‌نیازها:** Git، Python 3.14 همراه با `venv` و دسترسی به مخزن بسته‌ها.
 
-```bash
-git clone https://github.com/amirrezaparvaneh/quera_video_sharing.git
-cd quera_video_sharing
-```
+۱. مخزن را دریافت کنید:
 
-۲. محیط مجازی را بسازید و فعال کنید؛ محیط بررسی‌شده از Python 3.14 استفاده می‌کند:
+   ```bash
+   git clone https://github.com/amirrezaparvaneh/quera_video_sharing.git
+   cd quera_video_sharing
+   ```
 
-```bash
-python3.14 -m venv venv
-source venv/bin/activate
-```
+۲. محیط مجازی بسازید و فعال کنید:
 
-در PowerShell ویندوز:
+   ```bash
+   python3.14 -m venv venv
+   source venv/bin/activate
+   ```
 
-```powershell
-py -3.14 -m venv venv
-.\venv\Scripts\Activate.ps1
-```
+   در PowerShell ویندوز:
+
+   ```powershell
+   py -3.14 -m venv venv
+   .\venv\Scripts\Activate.ps1
+   ```
 
 ۳. وابستگی‌ها را نصب کنید:
 
-```bash
-python -m pip install -r requirements.txt
-```
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-۴. برای ساخت پایگاه داده محلی، مایگریشن‌های موجود را اعمال کنید:
+۴. مایگریشن‌ها را اعمال کنید:
 
-```bash
-python manage.py migrate
-```
+   ```bash
+   python manage.py migrate
+   ```
 
-۵. در صورت نیاز، کاربر مدیر بسازید:
+۵. در صورت نیاز، حساب مدیر بسازید:
 
-```bash
-python manage.py createsuperuser
-```
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-۶. تنظیمات را بررسی و سرور توسعه را اجرا کنید:
+۶. پیکربندی را بررسی و سرور توسعه را اجرا کنید:
 
-```bash
-python manage.py check
-python manage.py runserver
-```
+   ```bash
+   python manage.py check
+   python manage.py runserver
+   ```
 
-آدرس سرور `http://127.0.0.1:8000/` است. مسیر صفحه اصلی تعریف نشده است؛ برای مستندات تعاملی به `/api/v1/docs/` و برای پنل مدیریت به `/admin/` بروید. اسکیما OpenAPI در `/api/v1/schema/` و ورود نشست‌محور API در `/api-auth/login/` قرار دارد.
+سرور روی `http://127.0.0.1:8000/` اجرا می‌شود. مسیر ریشه صفحه‌ای ندارد. از مسیرهای زیر استفاده کنید:
 
-### مسیرهای API
+| نشانی | کاربرد |
+| --- | --- |
+| `/api/v1/docs/` | Swagger UI |
+| `/api/v1/schema/` | اسکیمای خام OpenAPI |
+| `/admin/` | پنل مدیریت Django |
+| `/api-auth/login/` | ورود نشست‌محور برای رابط مرورگر API |
 
-مسیرها نسبت به آدرس سرور هستند و اسلش پایانی دارند. CRUD به معنی دریافت فهرست و ایجاد با `GET` و `POST` روی مسیر مجموعه، و دریافت جزئیات، ویرایش و حذف با `GET`، `PUT`، `PATCH` و `DELETE` روی مسیر `/<id>/` است.
+### مرجع API
 
-| مسیر | متدها | کاربرد |
+همه مسیرها نسبت به ریشه سرور هستند و با اسلش پایانی ختم می‌شوند. برای منابع CRUD، مسیر مجموعه از `GET` (فهرست) و `POST` (ایجاد) پشتیبانی می‌کند و مسیر `<id>/` از `GET`، `PUT`، `PATCH` و `DELETE`.
+
+| مسیر | متدها | توضیح |
 | --- | --- | --- |
-| `/api/v1/users/register/` | POST | ثبت‌نام و دریافت توکن، شناسه و نام کاربری |
-| `/api/v1/users/login/` | POST | ورود و دریافت توکن، شناسه و نام کاربری |
-| `/api/v1/videos/videos/` | CRUD | اطلاعات و فایل ویدیو |
+| `/api/v1/users/register/` | `POST` | ثبت‌نام؛ بازگرداندن توکن، شناسه و نام کاربری |
+| `/api/v1/users/login/` | `POST` | ورود؛ بازگرداندن توکن، شناسه و نام کاربری |
+| `/api/v1/videos/videos/` | CRUD | اطلاعات ویدیو و بارگذاری فایل |
 | `/api/v1/videos/comments/` | CRUD | نظرها |
 | `/api/v1/videos/ratings/` | CRUD | امتیازها |
-| `/api/v1/videos/watch-history/` | GET | تاریخچه تماشای کاربر، از جدید به قدیم |
-| `/api/v1/finance/subscriptions/` | GET | اشتراک‌های کاربر؛ جزئیات در `/<id>/` |
-| `/api/v1/finance/payments/` | CRUD | پرداخت‌های شبیه‌سازی‌شده کاربر |
-| `/api/v1/finance/payments-history/` | GET | رکوردهای جداگانه تاریخچه پرداخت، از جدید به قدیم |
-| `/api/v1/finance/cancel/` | POST | غیرفعال‌سازی اشتراک کاربر |
-| `/api/v1/finance/renew/` | POST | تمدید یا فعال‌سازی مجدد اشتراک برای ۳۰ روز |
+| `/api/v1/videos/watch-history/` | `GET` | تاریخچه تماشای کاربر جاری، از جدید به قدیم |
+| `/api/v1/finance/subscriptions/` | `GET` | اشتراک‌های کاربر جاری؛ جزئیات در `<id>/` |
+| `/api/v1/finance/payments/` | CRUD | پرداخت‌های شبیه‌سازی‌شده کاربر جاری |
+| `/api/v1/finance/payments-history/` | `GET` | رکوردهای تاریخچه پرداخت کاربر جاری، از جدید به قدیم |
+| `/api/v1/finance/renew/` | `POST` | تمدید یا فعال‌سازی مجدد اشتراک برای ۳۰ روز |
+| `/api/v1/finance/cancel/` | `POST` | غیرفعال‌سازی اشتراک کاربر جاری |
 
-ثبت‌نام و ورود بدون احراز هویت قابل استفاده‌اند. همه می‌توانند ویدیوها، نظرها و امتیازها را بخوانند؛ اما فایل ویدیوی ویژه در فهرست پنهان است و صفحه جزئیات آن فقط برای کارکنان و کاربران دارای اشتراک فعال و منقضی‌نشده باز می‌شود. فقط کارکنان می‌توانند ویدیو بسازند، ویرایش کنند یا حذف کنند. نظر و امتیاز به کاربر واردشده نیاز دارد، فقط توسط مالک آن (یا کارکنان) قابل تغییر است و برای ویدیوی ویژه دسترسی ویژه لازم است. امتیاز عددی از ۱ تا ۵ است و برای هر کاربر و ویدیو فقط یکی ثبت می‌شود. پرداخت‌ها با قیمت ثابت (`SUBSCRIPTION_PRICE`) شبیه‌سازی می‌شوند، فقط ساخته و خوانده می‌شوند و هر پرداخت یا تمدید، اشتراک واحد کاربر را ۳۰ روز تمدید می‌کند. مسیرهای مالی و تاریخچه نیز مخصوص کاربران واردشده‌اند.
+**قواعد دسترسی**
+
+- ثبت‌نام و ورود برای کاربران ناشناس باز است.
+- همه می‌توانند ویدیوها، نظرها و امتیازها را بخوانند. فایل ویدیوی ویژه در پاسخ فهرست پنهان است. صفحه جزئیات آن فقط برای کارکنان و کاربرانی با اشتراک فعال و منقضی‌نشده در دسترس است.
+- فقط کارکنان می‌توانند ویدیو ایجاد، ویرایش یا حذف کنند.
+- نظر و امتیاز نیاز به احراز هویت دارند. فقط مالک آن‌ها (یا کارکنان) می‌تواند تغییرشان دهد. برای ویدیوی ویژه، دسترسی ویژه لازم است.
+- مسیرهای مالی و تاریخچه نیز نیاز به احراز هویت دارند.
+
+**پرداخت**
+
+پرداخت‌ها شبیه‌سازی می‌شوند. هیچ وجهی منتقل نمی‌شود و درگاه پرداختی وجود ندارد. قیمت با `SUBSCRIPTION_PRICE` (برابر ۵۰۰۰۰) تعیین می‌شود. هر پرداخت یا تمدید، اشتراک واحد کاربر را ۳۰ روز تمدید می‌کند.
 
 ### نمونه درخواست‌ها
 
-ثبت‌نام:
+اگر آدرس سرور شما متفاوت است، `http://127.0.0.1:8000` را جایگزین کنید.
+
+**ثبت‌نام کاربر**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
@@ -302,7 +377,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/users/register/ \
   -d '{"username":"demo","email":"demo@example.com","password":"ExamplePassword123!"}'
 ```
 
-ورود:
+**ورود**
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
@@ -310,7 +385,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/users/login/ \
   -d '{"username":"demo","password":"ExamplePassword123!"}'
 ```
 
-مقدار `token` دریافتی را در متغیر زیر قرار دهید. پیشوند احراز هویت `Token` است:
+مقدار `token` دریافتی را ذخیره کنید. درخواست‌ها از طرح احراز هویت `Token` استفاده می‌کنند:
 
 ```bash
 export API_TOKEN='replace-with-returned-token'
@@ -318,7 +393,7 @@ curl http://127.0.0.1:8000/api/v1/videos/watch-history/ \
   -H "Authorization: Token $API_TOKEN"
 ```
 
-بارگذاری یک فایل ویدیوی موجود در سیستم:
+**بارگذاری ویدیو** (نیاز به حساب کارکنان)
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
@@ -329,7 +404,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/videos/videos/ \
   -F 'video_file=@/absolute/path/to/video.mp4'
 ```
 
-ایجاد پرداخت شبیه‌سازی‌شده و اشتراک جدید ۳۰روزه:
+**ایجاد پرداخت شبیه‌سازی‌شده** (فعال‌سازی اشتراک ۳۰ روزه)
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
@@ -338,36 +413,48 @@ curl -X POST http://127.0.0.1:8000/api/v1/finance/payments/ \
   -d '{"amount":"50000.00"}'
 ```
 
-هیچ وجهی منتقل نمی‌شود. مبلغ پرداخت را کلاینت تعیین می‌کند و واحد پول مشخص نشده است. تمدید به‌صورت جداگانه یک رکورد `PaymentHistory` با مبلغ `50000` و وضعیت `Success` ثبت می‌کند؛ ایجاد `Payment` چنین رکوردی ایجاد نمی‌کند.
+نکته: مبلغ را کلاینت ارسال می‌کند و واحد پول تعریف نشده است. تمدید (`/finance/renew/`) یک رکورد `PaymentHistory` با مبلغ `50000` و وضعیت `Success` ثبت می‌کند. ایجاد `Payment` چنین رکوردی نمی‌سازد.
 
 ### ساختار پروژه
 
-| مسیر | محتوا |
-| --- | --- |
-| `core/` | تنظیمات، مسیرهای اصلی و ورودی‌های WSGI و ASGI |
-| `users/` | مدل کاربر، ثبت‌نام، ورود و تست‌ها |
-| `videos/` | ویدیو، نظر، امتیاز، مجوزها، تاریخچه و تست‌ها |
-| `subscriptions/` | اشتراک، پرداخت شبیه‌سازی‌شده و تاریخچه پرداخت |
-| `*/migrations/` | مایگریشن‌های پایگاه داده هر برنامه |
-| `docs/` | نمودار ارتباط موجودیت‌ها با فرمت‌های drawio و SVG |
-| `manage.py` | اجرای دستورهای مدیریتی Django |
-| `requirements.txt` | وابستگی‌ها با نسخه مشخص |
+```text
+core/             تنظیمات، مسیرهای اصلی و ورودی‌های WSGI و ASGI
+users/            مدل کاربر، ثبت‌نام، ورود و تست‌ها
+videos/           ویدیو، نظر، امتیاز، مجوزها، تاریخچه تماشا و تست‌ها
+subscriptions/    اشتراک، پرداخت شبیه‌سازی‌شده، تاریخچه پرداخت و تست‌ها
+*/migrations/     مایگریشن‌های پایگاه داده هر برنامه
+docs/             نمودار ارتباط موجودیت‌ها (فایل draw.io و SVG)
+manage.py         نقطه ورود دستورهای مدیریتی Django
+requirements.txt  وابستگی‌ها با نسخه مشخص
+```
 
-نمودار پوشه `docs/` یک مرجع طراحی است و مدل جدیدتر `PaymentHistory` را ندارد. برای ساختار پیاده‌سازی‌شده، مدل‌ها و مایگریشن‌ها را بررسی کنید.
+نمودار پوشه `docs/` مرجع طراحی است و مدل `PaymentHistory` را ندارد. برای ساختار واقعی پایگاه داده، مدل‌ها و مایگریشن‌ها ملاک هستند.
 
-### بررسی‌ها و محدودیت‌های شناخته‌شده
-
-اجرای تست‌ها (۴۱ تست برای ثبت‌نام، ورود، دسترسی به ویدیو و ویدیوی ویژه، نظر، امتیاز، تاریخچه تماشا و اشتراک؛ فایل‌های بارگذاری‌شده در پوشه موقت رسانه ذخیره می‌شوند):
+### تست‌ها
 
 ```bash
 python manage.py test
 ```
 
-پیکربندی از متغیرهای محیطی خوانده می‌شود. مقادیر پیش‌فرض برای توسعه محلی مناسب‌اند؛ برای استقرار واقعی `DJANGO_DEBUG=False`، `DJANGO_SECRET_KEY` و `DJANGO_ALLOWED_HOSTS` را تنظیم کنید (وقتی debug خاموش باشد و کلید مخفی تنظیم نشده باشد، برنامه اجرا نمی‌شود). فایل‌های بارگذاری‌شده در پوشه `media/` ذخیره می‌شوند و فقط وقتی `DEBUG` روشن است توسط Django ارائه می‌شوند.
+این مجموعه شامل ۴۱ تست است که ثبت‌نام، ورود، دسترسی به ویدیو و ویدیوی ویژه، نظر، امتیاز، تاریخچه تماشا و اشتراک را پوشش می‌دهد. فایل‌های بارگذاری‌شده در طول تست‌ها در یک پوشه موقت ذخیره می‌شوند.
 
-محدودیت‌های شناخته‌شده:
+### پیکربندی
+
+تنظیمات از متغیرهای محیطی خوانده می‌شوند. مقادیر پیش‌فرض فقط برای توسعه محلی مناسب‌اند.
+
+| متغیر | پیش‌فرض | توضیح |
+| --- | --- | --- |
+| `DJANGO_DEBUG` | `True` | فعال‌سازی حالت دیباگ. در محیط عملیاتی `False` قرار دهید. |
+| `DJANGO_SECRET_KEY` | ندارد | وقتی `DJANGO_DEBUG` برابر `False` است الزامی است. |
+| `DJANGO_ALLOWED_HOSTS` | خالی | فهرست نام میزبان‌های مجاز، جدا شده با کاما. |
+
+در استقرار واقعی، `DJANGO_DEBUG=False`، `DJANGO_SECRET_KEY` و `DJANGO_ALLOWED_HOSTS` را تنظیم کنید. اگر حالت دیباگ خاموش باشد و کلید مخفی تنظیم نشده باشد، Django اجرا نمی‌شود.
+
+فایل‌های بارگذاری‌شده در پوشه `media/` ذخیره می‌شوند. Django فقط وقتی `DEBUG` فعال است آن‌ها را ارائه می‌کند.
+
+### محدودیت‌های شناخته‌شده
 
 - **پرداخت:** پرداخت‌ها شبیه‌سازی‌شده‌اند و درگاه پرداخت ندارند. `Payment` و `PaymentHistory` رکوردهای جداگانه‌اند و دفتر مالی یکپارچه نیستند.
-- **شمارش بازدید:** باز کردن صفحه جزئیات ویدیو بازدید حساب می‌شود، نه پخش تأییدشده؛ درخواست‌های تکراری رکورد جدید در تاریخچه می‌سازند.
-- **ارائه رسانه:** نشانی فایل ویدیوی ویژه برای کسی که دسترسی دارد دیده می‌شود و خود فایل‌ها پس از دانستن نشانی محافظت نشده‌اند. ذخیره‌سازی عملیاتی و ارائه محافظت‌شده به پیکربندی جداگانه نیاز دارد.
+- **شمارش بازدید:** باز کردن صفحه جزئیات ویدیو بازدید حساب می‌شود، نه پخش تأییدشده. درخواست‌های تکراری رکورد جدید در تاریخچه ثبت می‌کنند.
+- **ارائه رسانه:** نشانی فایل ویدیوی ویژه برای هر کسی که دسترسی دارد قابل مشاهده است و پس از دانستن نشانی، خود فایل محافظت نمی‌شود. ذخیره‌سازی عملیاتی و ارائه محافظت‌شده نیاز به پیکربندی جداگانه دارند.
 - **پایگاه داده:** برای توسعه محلی از SQLite استفاده می‌شود.
