@@ -7,7 +7,7 @@ User = get_user_model()
 
 class UserAuthenticationTests(APITestCase):
     def setUp(self):
-        self.register_url = '/api/users/register/'
+        self.register_url = '/api/v1/users/register/'
         self.user_data = {
             'username': 'testuser',
             'email': 'testuser@example.com',
@@ -48,7 +48,7 @@ class UserAuthenticationTests(APITestCase):
 
     def test_login_returns_token(self):
         User.objects.create_user(**self.user_data)
-        response = self.client.post('/api/users/login/', {
+        response = self.client.post('/api/v1/users/login/', {
             'username': 'testuser', 'password': 'StrongPassword123!'
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -56,7 +56,7 @@ class UserAuthenticationTests(APITestCase):
 
     def test_login_rejects_wrong_password(self):
         User.objects.create_user(**self.user_data)
-        response = self.client.post('/api/users/login/', {
+        response = self.client.post('/api/v1/users/login/', {
             'username': 'testuser', 'password': 'wrong'
         })
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
